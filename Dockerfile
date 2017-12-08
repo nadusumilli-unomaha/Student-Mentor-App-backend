@@ -6,16 +6,16 @@
 ###################################
 
 # Pull base image.
-FROM python:2.7.13
+FROM python:3
 ENV PYTHONUNBUFFERED 1
 
 # Setup linkages to code repositories and add to image
 
-WORKDIR /var/www/studentApp/backend
+WORKDIR /var/www/backend
 
-ADD requirements.txt /var/www/studentApp/backend/
+ADD requirements.txt /var/www/backend/
 
 #Python packages
 RUN pip install -r requirements.txt
 
-ADD . /var/www/studentApp/backend/
+ADD . /var/www/backend/

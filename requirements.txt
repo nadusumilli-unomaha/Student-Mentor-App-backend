@@ -1,6 +1,8 @@
-Django
+Django==1.11
 djangorestframework
+djangorestframework-jsonapi
 markdown
 django-filter
 psycopg2
+six
 requests

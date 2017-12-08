@@ -2,5 +2,149 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.contrib.auth import authenticate, login, logout
+
+
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework import viewsets, filters, status
+from rest_framework.response import Response
+
+from api.models import *
+from api.serializers import *
+from django.utils import six
+
+import requests
+import json
 
 # Create your views here.
+def Home(request):
+   """
+   Send requests to / to the ember.js clientside app
+   """
+   return render_to_response('index.html',
+               {}, RequestContext(request))
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed.
+    """
+    resource_name = 'users'
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+
+class MentorViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed.
+    """
+    resource_name = 'mentors'
+    queryset = Mentor.objects.all()
+    serializer_class = MentorSerializer
+
+class StudentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed.
+    """
+    permission_classes = (AllowAny,)
+    resource_name = 'students'
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+class PermissionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Permission.objects.all()
+    serializer_class = PermissionSerializer
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+
+class Session(APIView):
+    permission_classes = (AllowAny,)
+    def form_response(self, isauthenticated, userid, username, error=""):
+        data = {
+            'isauthenticated': isauthenticated,
+            'userid': userid,
+            'username': username
+        }
+        if error:
+            data['message'] = error
+
+        return Response(data)
+
+    def get(self, request, *args, **kwargs):
+        # Get the current user
+        if request.user.is_authenticated():
+            return self.form_response(True, request.user.id, request.user.username)
+        return self.form_response(False, None, None)
+
+    def post(self, request, *args, **kwargs):
+        # Login
+        if(request.POST.get('type') == 'googleapi'):
+            print(request.POST.get('code'))
+            print('\n')
+            payload = {
+                'code': request.POST.get('code'),
+                'redirect_uri': request.POST.get('redirect_uri'),
+                'client_id': request.POST.get('client_id'),
+                'client_secret': 'GTh3XSznfL4tWbDajpYwYjrR',
+                'scope': 'email',
+                'grant_type': 'authorization_code'
+            }
+            headers = {
+                'Content-Type': 'application/x-www-formurlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+
+            response = requests.post("https://www.googleapis.com/oauth2/v4/token", data=payload)
+            # print(json.loads(response.text))
+            return Response(json.loads(response.text))
+
+        if(request.POST.get('type') == 'regular'):
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    return self.form_response(True, user.id, user.username)
+                return self.form_response(False, None, None, "Account is suspended")
+            return self.form_response(False, None, None, "Invalid username or password")
+
+    def delete(self, request, *args, **kwargs):
+        # Logout
+        logout(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+
+class Register(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        # Login
+        username = request.POST.get('username') #you need to apply validators to these
+        print (username)
+        password = request.POST.get('password') #you need to apply validators to these
+        email = request.POST.get('email') #you need to apply validators to these
+
+        print (request.POST.get('username'))
+        if User.objects.filter(username=username).exists():
+            return Response({'username': 'Username is taken.', 'status': 'error'})
+        elif User.objects.filter(email=email).exists():
+            return Response({'email': 'Email is taken.', 'status': 'error'})
+
+        #especially before you pass them in here
+        newuser = User.objects.create_user(email=email, username=username, password=password)
+        newstudent = Student(user=newuser)
+        newstudent.save()
+
+        return Response({'status': 'success', 'userid': newuser.id, 'profile': newstudent.id})
