@@ -29,7 +29,7 @@ class MentorSerializer(serializers.HyperlinkedModelSerializer):
     #fields = '__all__'
     class Meta:
         model = Mentor
-        fields = (  'user', 'video', 'cv', 'bio', 'research_interest', 'institution','job','field_of_study', 'webpage', 'experience')
+        fields = (  'user', 'video', 'cv', 'bio', 'researchinterest', 'institution','job','fieldofstudy', 'webpage', 'experience')
 
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

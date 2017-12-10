@@ -70,11 +70,12 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class Session(APIView):
     permission_classes = (AllowAny,)
-    def form_response(self, isauthenticated, userid, username, error=""):
+    def form_response(self, isauthenticated, userid, username, is_superuser=False, error=""):
         data = {
             'isauthenticated': isauthenticated,
             'userid': userid,
-            'username': username
+            'username': username,
+            'issuperuser': is_superuser,
         }
         if error:
             data['message'] = error
@@ -84,7 +85,7 @@ class Session(APIView):
     def get(self, request, *args, **kwargs):
         # Get the current user
         if request.user.is_authenticated():
-            return self.form_response(True, request.user.id, request.user.username)
+            return self.form_response(True, request.user.id, request.user.username, request.user.is_superuser)
         return self.form_response(False, None, None)
 
     def post(self, request, *args, **kwargs):
@@ -116,9 +117,9 @@ class Session(APIView):
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    return self.form_response(True, user.id, user.username)
-                return self.form_response(False, None, None, "Account is suspended")
-            return self.form_response(False, None, None, "Invalid username or password")
+                    return self.form_response(True, user.id, user.username, user.is_superuser)
+                return self.form_response(False, None, None, None, "Account is suspended")
+            return self.form_response(False, None, None, None,"Invalid username or password")
 
     def delete(self, request, *args, **kwargs):
         # Logout

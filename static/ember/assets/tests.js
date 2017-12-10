@@ -86,6 +86,11 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.ok(true, 'controllers/login.js should pass ESLint\n\n');
   });
 
+  QUnit.test('controllers/mentor.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/mentor.js should pass ESLint\n\n');
+  });
+
   QUnit.test('controllers/register.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'controllers/register.js should pass ESLint\n\n');
@@ -104,6 +109,11 @@ define('frontend/tests/app.lint-test', [], function () {
   QUnit.test('initializers/constants.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'initializers/constants.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('models/mentor.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'models/mentor.js should pass ESLint\n\n');
   });
 
   QUnit.test('models/student.js', function (assert) {
@@ -134,6 +144,11 @@ define('frontend/tests/app.lint-test', [], function () {
   QUnit.test('routes/login.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'routes/login.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/mentor.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/mentor.js should pass ESLint\n\n');
   });
 
   QUnit.test('routes/register.js', function (assert) {
@@ -201,13 +216,22 @@ define('frontend/tests/controllers/login.jshint.lint-test', [], function () {
     assert.ok(true, 'controllers/login.js should pass jshint.');
   });
 });
+define('frontend/tests/controllers/mentor.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | controllers/mentor.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/mentor.js should pass jshint.');
+  });
+});
 define('frontend/tests/controllers/register.jshint.lint-test', [], function () {
   'use strict';
 
   QUnit.module('JSHint | controllers/register.js');
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
-    assert.ok(false, 'controllers/register.js should pass jshint.\ncontrollers/register.js: line 94, col 24, Confusing use of \'!\'.\n\n1 error');
+    assert.ok(true, 'controllers/register.js should pass jshint.');
   });
 });
 define('frontend/tests/helpers/destroy-app', ['exports'], function (exports) {
@@ -230,6 +254,84 @@ define('frontend/tests/helpers/destroy-app.jshint.lint-test', [], function () {
     assert.expect(1);
     assert.ok(true, 'helpers/destroy-app.js should pass jshint.');
   });
+});
+define('frontend/tests/helpers/ember-basic-dropdown', ['exports', 'ember-basic-dropdown/test-support/helpers', 'ember-native-dom-helpers'], function (exports, _helpers, _emberNativeDomHelpers) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.nativeClick = exports.fireKeydown = exports.tapTrigger = exports.clickTrigger = exports.nativeTap = undefined;
+  Object.defineProperty(exports, 'nativeTap', {
+    enumerable: true,
+    get: function () {
+      return _helpers.nativeTap;
+    }
+  });
+  Object.defineProperty(exports, 'clickTrigger', {
+    enumerable: true,
+    get: function () {
+      return _helpers.clickTrigger;
+    }
+  });
+  Object.defineProperty(exports, 'tapTrigger', {
+    enumerable: true,
+    get: function () {
+      return _helpers.tapTrigger;
+    }
+  });
+  Object.defineProperty(exports, 'fireKeydown', {
+    enumerable: true,
+    get: function () {
+      return _helpers.fireKeydown;
+    }
+  });
+  exports.default = _helpers.default;
+  var nativeClick = exports.nativeClick = _emberNativeDomHelpers.click;
+});
+define('frontend/tests/helpers/ember-power-select', ['exports', 'ember-power-select/test-support/helpers'], function (exports, _helpers) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.selectChoose = exports.touchTrigger = exports.nativeTouch = exports.clickTrigger = exports.typeInSearch = exports.triggerKeydown = exports.nativeMouseUp = exports.nativeMouseDown = exports.findContains = undefined;
+  exports.default = deprecatedRegisterHelpers;
+
+
+  function deprecateHelper(fn, name) {
+    return function () {
+      (true && !(false) && Ember.deprecate('DEPRECATED `import { ' + name + ' } from \'../../tests/helpers/ember-power-select\';` is deprecated. Please, replace it with `import { ' + name + ' } from \'ember-power-select/test-support/helpers\';`', false, { until: '1.11.0', id: 'ember-power-select-test-support-' + name }));
+
+      return fn.apply(undefined, arguments);
+    };
+  }
+
+  var findContains = deprecateHelper(_helpers.findContains, 'findContains');
+  var nativeMouseDown = deprecateHelper(_helpers.nativeMouseDown, 'nativeMouseDown');
+  var nativeMouseUp = deprecateHelper(_helpers.nativeMouseUp, 'nativeMouseUp');
+  var triggerKeydown = deprecateHelper(_helpers.triggerKeydown, 'triggerKeydown');
+  var typeInSearch = deprecateHelper(_helpers.typeInSearch, 'typeInSearch');
+  var clickTrigger = deprecateHelper(_helpers.clickTrigger, 'clickTrigger');
+  var nativeTouch = deprecateHelper(_helpers.nativeTouch, 'nativeTouch');
+  var touchTrigger = deprecateHelper(_helpers.touchTrigger, 'touchTrigger');
+  var selectChoose = deprecateHelper(_helpers.selectChoose, 'selectChoose');
+
+  function deprecatedRegisterHelpers() {
+    (true && !(false) && Ember.deprecate("DEPRECATED `import registerPowerSelectHelpers from '../../tests/helpers/ember-power-select';` is deprecated. Please, replace it with `import registerPowerSelectHelpers from 'ember-power-select/test-support/helpers';`", false, { until: '1.11.0', id: 'ember-power-select-test-support-register-helpers' }));
+
+    return (0, _helpers.default)();
+  }
+
+  exports.findContains = findContains;
+  exports.nativeMouseDown = nativeMouseDown;
+  exports.nativeMouseUp = nativeMouseUp;
+  exports.triggerKeydown = triggerKeydown;
+  exports.typeInSearch = typeInSearch;
+  exports.clickTrigger = clickTrigger;
+  exports.nativeTouch = nativeTouch;
+  exports.touchTrigger = touchTrigger;
+  exports.selectChoose = selectChoose;
 });
 define('frontend/tests/helpers/ember-simple-auth', ['exports', 'ember-simple-auth/authenticators/test'], function (exports, _test) {
   'use strict';
@@ -462,6 +564,91 @@ define('frontend/tests/initializers/constants.jshint.lint-test', [], function ()
     assert.ok(true, 'initializers/constants.js should pass jshint.');
   });
 });
+define('frontend/tests/integration/components/email-modal-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleForComponent)('email-modal', 'Integration | Component | email modal', {
+    integration: true
+  });
+
+  (0, _emberQunit.test)('it renders', function (assert) {
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template({
+      "id": "wr62zGxh",
+      "block": "{\"symbols\":[],\"statements\":[[1,[18,\"email-modal\"],false]],\"hasEval\":false}",
+      "meta": {}
+    }));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template({
+      "id": "SR4uW0Ub",
+      "block": "{\"symbols\":[],\"statements\":[[0,\"\\n\"],[4,\"email-modal\",null,null,{\"statements\":[[0,\"      template block text\\n\"]],\"parameters\":[]},null],[0,\"  \"]],\"hasEval\":false}",
+      "meta": {}
+    }));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+});
+define('frontend/tests/integration/components/email-modal-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | integration/components/email-modal-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/components/email-modal-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/integration/components/modal-dialog-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleForComponent)('modal-dialog', 'Integration | Component | modal dialog', {
+    integration: true
+  });
+
+  (0, _emberQunit.test)('it renders', function (assert) {
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template({
+      "id": "qjgJVjLL",
+      "block": "{\"symbols\":[],\"statements\":[[1,[18,\"modal-dialog\"],false]],\"hasEval\":false}",
+      "meta": {}
+    }));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template({
+      "id": "zfxhMuEG",
+      "block": "{\"symbols\":[],\"statements\":[[0,\"\\n\"],[4,\"modal-dialog\",null,null,{\"statements\":[[0,\"      template block text\\n\"]],\"parameters\":[]},null],[0,\"  \"]],\"hasEval\":false}",
+      "meta": {}
+    }));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+});
+define('frontend/tests/integration/components/modal-dialog-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | integration/components/modal-dialog-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/components/modal-dialog-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/models/mentor.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | models/mentor.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'models/mentor.js should pass jshint.');
+  });
+});
 define('frontend/tests/models/student.jshint.lint-test', [], function () {
   'use strict';
 
@@ -514,6 +701,15 @@ define('frontend/tests/routes/login.jshint.lint-test', [], function () {
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
     assert.ok(true, 'routes/login.js should pass jshint.');
+  });
+});
+define('frontend/tests/routes/mentor.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | routes/mentor.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/mentor.js should pass jshint.');
   });
 });
 define('frontend/tests/routes/register.jshint.lint-test', [], function () {
@@ -592,6 +788,16 @@ define('frontend/tests/tests.lint-test', [], function () {
     assert.ok(true, 'helpers/start-app.js should pass ESLint\n\n');
   });
 
+  QUnit.test('integration/components/email-modal-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/components/email-modal-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('integration/components/modal-dialog-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/components/modal-dialog-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('test-helper.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'test-helper.js should pass ESLint\n\n');
@@ -612,14 +818,29 @@ define('frontend/tests/tests.lint-test', [], function () {
     assert.ok(true, 'unit/adapters/user-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('unit/controllers/mentor-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/mentor-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('unit/initializers/session-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/initializers/session-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('unit/models/mentor-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/models/mentor-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('unit/models/student-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/models/student-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/mentor-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/mentor-test.js should pass ESLint\n\n');
   });
 
   QUnit.test('unit/serializers/user-test.js', function (assert) {
@@ -696,6 +917,29 @@ define('frontend/tests/unit/adapters/user-test.jshint.lint-test', [], function (
     assert.ok(true, 'unit/adapters/user-test.js should pass jshint.');
   });
 });
+define('frontend/tests/unit/controllers/mentor-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('controller:mentor', 'Unit | Controller | mentor', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  // Replace this with your real tests.
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var controller = this.subject();
+    assert.ok(controller);
+  });
+});
+define('frontend/tests/unit/controllers/mentor-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/controllers/mentor-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/mentor-test.js should pass jshint.');
+  });
+});
 define('frontend/tests/unit/initializers/session-test', ['frontend/initializers/session', 'qunit', 'frontend/tests/helpers/destroy-app'], function (_session, _qunit, _destroyApp) {
   'use strict';
 
@@ -734,6 +978,29 @@ define('frontend/tests/unit/initializers/session-test.jshint.lint-test', [], fun
     assert.ok(true, 'unit/initializers/session-test.js should pass jshint.');
   });
 });
+define('frontend/tests/unit/models/mentor-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleForModel)('mentor', 'Unit | Model | mentor', {
+    // Specify the other units that are required for this test.
+    needs: []
+  });
+
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var model = this.subject();
+    // let store = this.store();
+    assert.ok(!!model);
+  });
+});
+define('frontend/tests/unit/models/mentor-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/models/mentor-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/models/mentor-test.js should pass jshint.');
+  });
+});
 define('frontend/tests/unit/models/student-test', ['ember-qunit'], function (_emberQunit) {
   'use strict';
 
@@ -755,6 +1022,28 @@ define('frontend/tests/unit/models/student-test.jshint.lint-test', [], function 
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/models/student-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/unit/routes/mentor-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('route:mentor', 'Unit | Route | mentor', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var route = this.subject();
+    assert.ok(route);
+  });
+});
+define('frontend/tests/unit/routes/mentor-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/routes/mentor-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/mentor-test.js should pass jshint.');
   });
 });
 define('frontend/tests/unit/serializers/user-test', ['ember-qunit'], function (_emberQunit) {

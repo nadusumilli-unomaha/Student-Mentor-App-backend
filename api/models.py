@@ -13,13 +13,13 @@ class Mentor(models.Model):
     video = models.URLField(max_length=200)
     cv = models.URLField(max_length=200)
     bio = models.CharField(max_length=400)
-    research_interest = models.CharField(max_length=200)
+    researchinterest = models.CharField(max_length=200)
     institution = models.CharField(max_length=200)
     job = models.CharField(max_length=200)
-    field_of_study = models.CharField(max_length=200)
+    fieldofstudy = models.CharField(max_length=200)
     webpage = models.URLField(max_length=200)
     experience = models.CharField(max_length=200)
-    students_maxedout = models.BooleanField(default=False)
+    studentsmaxedOut = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
