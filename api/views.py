@@ -112,6 +112,26 @@ class RemoveMentor(APIView):
             return Response({'success': False, 'status':status.HTTP_400_BAD_REQUEST}) 
         return Response({'success': True, 'status':status.HTTP_200_OK})
 
+class CreateMentor(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password=request.POST.get('password')
+        video=request.POST.get('video')
+        cv=request.POST.get('cv')
+        experience=request.POST.get('experience')
+        researchinterest=request.POST.get('researchinterest')
+        institution=request.POST.get('institution')
+        fieldofstudy=request.POST.get('fieldofstudy')
+        webpage=request.POST.get('webpage')
+        bio=request.POST.get('bio')
+        newUser = User.objects.create_user(username=username, email=email, password=password)
+        newUser.save()
+        newMentor = Mentor(video=video, cv=cv, experience=experience, researchinterest=researchinterest, institution=institution, fieldofstudy=fieldofstudy, webpage=webpage, bio=bio, user=newUser)
+        newMentor.save()
+        return Response({'status': 'success', 'userid': newUser.id, 'profile': newMentor.id})
+
 
 class Session(APIView):
     permission_classes = (AllowAny,)

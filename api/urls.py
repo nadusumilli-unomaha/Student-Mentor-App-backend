@@ -22,6 +22,7 @@ router.register(r'permissions', views.PermissionViewSet)
 #REST API
 urlpatterns = [
     url(r'^session/', views.Session.as_view()),
+    url(r'^createMentor/', views.CreateMentor.as_view()),
     url(r'^addMentor/', views.AddMentor.as_view()),
     url(r'^removeMentor/', views.RemoveMentor.as_view()),
     url(r'^register', csrf_exempt(views.Register.as_view())),
