@@ -25605,26 +25605,24 @@ button.close {
 .rememberlogin {
   margin-left: 25px; }
 
-.copyrights {
+.footer {
+  background-color: #333;
+  color: #FFF;
+  padding: 20px 5%;
   position: absolute;
+  left: 0;
   right: 0;
   bottom: 0;
-  left: 0;
-  padding: 1rem;
-  background-color: #FFFFFF;
   text-align: center; }
 
 .iframe {
   float: left; }
 
-.mentorContent {
-  margin-left: 30%; }
+.btnMentorSubmit {
+  margin-top: 30%; }
 
-.btnMentorSignUp {
-  margin-top: 1%; }
-
-.emailSubmit {
-  margin-left: 90%; }
+.disable {
+  opacity: 0.5; }
 
 .md-searchbox {
   -webkit-box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(0, 0, 0, 0.14), 0 0 0 0 rgba(0, 0, 0, 0.12);
@@ -45216,6 +45214,9 @@ md-fab-speed-dial {
 
 .adminButtons {
   margin-bottom: 2%; }
+
+.displayStudents {
+  margin-left: 50px; }
 
 /*!
  * Bootstrap v3.3.7 (http://getbootstrap.com)

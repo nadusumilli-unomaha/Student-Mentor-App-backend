@@ -9,24 +9,6 @@ define('frontend/tests/adapters/application.jshint.lint-test', [], function () {
     assert.ok(true, 'adapters/application.js should pass jshint.');
   });
 });
-define('frontend/tests/adapters/google.jshint.lint-test', [], function () {
-  'use strict';
-
-  QUnit.module('JSHint | adapters/google.js');
-  QUnit.test('should pass jshint', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'adapters/google.js should pass jshint.');
-  });
-});
-define('frontend/tests/adapters/student.jshint.lint-test', [], function () {
-  'use strict';
-
-  QUnit.module('JSHint | adapters/student.js');
-  QUnit.test('should pass jshint', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'adapters/student.js should pass jshint.');
-  });
-});
 define('frontend/tests/app.jshint.lint-test', [], function () {
   'use strict';
 
@@ -46,29 +28,9 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.ok(true, 'adapters/application.js should pass ESLint\n\n');
   });
 
-  QUnit.test('adapters/google.js', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'adapters/google.js should pass ESLint\n\n');
-  });
-
-  QUnit.test('adapters/student.js', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'adapters/student.js should pass ESLint\n\n');
-  });
-
   QUnit.test('app.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'app.js should pass ESLint\n\n');
-  });
-
-  QUnit.test('authenticators/torii.js', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'authenticators/torii.js should pass ESLint\n\n');
-  });
-
-  QUnit.test('authorizers/google.js', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'authorizers/google.js should pass ESLint\n\n');
   });
 
   QUnit.test('components/nav-bar.js', function (assert) {
@@ -81,19 +43,34 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.ok(true, 'components/page-footer.js should pass ESLint\n\n');
   });
 
+  QUnit.test('controllers/index.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/index.js should pass ESLint\n\n');
+  });
+
   QUnit.test('controllers/login.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'controllers/login.js should pass ESLint\n\n');
   });
 
-  QUnit.test('controllers/mentor.js', function (assert) {
+  QUnit.test('controllers/mentors/create.js', function (assert) {
     assert.expect(1);
-    assert.ok(true, 'controllers/mentor.js should pass ESLint\n\n');
+    assert.ok(true, 'controllers/mentors/create.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/mentors/index.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/mentors/index.js should pass ESLint\n\n');
   });
 
   QUnit.test('controllers/register.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'controllers/register.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('helpers/bool.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'helpers/bool.js should pass ESLint\n\n');
   });
 
   QUnit.test('helpers/equal.js', function (assert) {
@@ -118,7 +95,7 @@ define('frontend/tests/app.lint-test', [], function () {
 
   QUnit.test('models/student.js', function (assert) {
     assert.expect(1);
-    assert.ok(false, 'models/student.js should pass ESLint\n\n5:2 - \'attr\' is assigned a value but never used. (no-unused-vars)');
+    assert.ok(true, 'models/student.js should pass ESLint\n\n');
   });
 
   QUnit.test('models/user.js', function (assert) {
@@ -146,19 +123,19 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.ok(true, 'routes/login.js should pass ESLint\n\n');
   });
 
-  QUnit.test('routes/mentor.js', function (assert) {
+  QUnit.test('routes/mentors/create.js', function (assert) {
     assert.expect(1);
-    assert.ok(true, 'routes/mentor.js should pass ESLint\n\n');
+    assert.ok(true, 'routes/mentors/create.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('routes/mentors/index.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/mentors/index.js should pass ESLint\n\n');
   });
 
   QUnit.test('routes/register.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'routes/register.js should pass ESLint\n\n');
-  });
-
-  QUnit.test('serializers/student.js', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'serializers/student.js should pass ESLint\n\n');
   });
 
   QUnit.test('services/auth-manager.js', function (assert) {
@@ -169,24 +146,6 @@ define('frontend/tests/app.lint-test', [], function () {
   QUnit.test('services/constants.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'services/constants.js should pass ESLint\n\n');
-  });
-});
-define('frontend/tests/authenticators/torii.jshint.lint-test', [], function () {
-  'use strict';
-
-  QUnit.module('JSHint | authenticators/torii.js');
-  QUnit.test('should pass jshint', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'authenticators/torii.js should pass jshint.');
-  });
-});
-define('frontend/tests/authorizers/google.jshint.lint-test', [], function () {
-  'use strict';
-
-  QUnit.module('JSHint | authorizers/google.js');
-  QUnit.test('should pass jshint', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'authorizers/google.js should pass jshint.');
   });
 });
 define('frontend/tests/components/nav-bar.jshint.lint-test', [], function () {
@@ -207,6 +166,15 @@ define('frontend/tests/components/page-footer.jshint.lint-test', [], function ()
     assert.ok(true, 'components/page-footer.js should pass jshint.');
   });
 });
+define('frontend/tests/controllers/index.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | controllers/index.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/index.js should pass jshint.');
+  });
+});
 define('frontend/tests/controllers/login.jshint.lint-test', [], function () {
   'use strict';
 
@@ -216,13 +184,22 @@ define('frontend/tests/controllers/login.jshint.lint-test', [], function () {
     assert.ok(true, 'controllers/login.js should pass jshint.');
   });
 });
-define('frontend/tests/controllers/mentor.jshint.lint-test', [], function () {
+define('frontend/tests/controllers/mentors/create.jshint.lint-test', [], function () {
   'use strict';
 
-  QUnit.module('JSHint | controllers/mentor.js');
+  QUnit.module('JSHint | controllers/mentors/create.js');
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
-    assert.ok(true, 'controllers/mentor.js should pass jshint.');
+    assert.ok(true, 'controllers/mentors/create.js should pass jshint.');
+  });
+});
+define('frontend/tests/controllers/mentors/index.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | controllers/mentors/index.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/mentors/index.js should pass jshint.');
   });
 });
 define('frontend/tests/controllers/register.jshint.lint-test', [], function () {
@@ -232,6 +209,15 @@ define('frontend/tests/controllers/register.jshint.lint-test', [], function () {
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
     assert.ok(true, 'controllers/register.js should pass jshint.');
+  });
+});
+define('frontend/tests/helpers/bool.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | helpers/bool.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'helpers/bool.js should pass jshint.');
   });
 });
 define('frontend/tests/helpers/destroy-app', ['exports'], function (exports) {
@@ -640,6 +626,35 @@ define('frontend/tests/integration/components/modal-dialog-test.jshint.lint-test
     assert.ok(true, 'integration/components/modal-dialog-test.js should pass jshint.');
   });
 });
+define('frontend/tests/integration/helpers/bool-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleForComponent)('bool', 'helper:bool', {
+    integration: true
+  });
+
+  // Replace this with your real tests.
+  (0, _emberQunit.test)('it renders', function (assert) {
+    this.set('inputValue', '1234');
+
+    this.render(Ember.HTMLBars.template({
+      "id": "mKOpHEcf",
+      "block": "{\"symbols\":[],\"statements\":[[1,[25,\"bool\",[[20,[\"inputValue\"]]],null],false]],\"hasEval\":false}",
+      "meta": {}
+    }));
+
+    assert.equal(this.$().text().trim(), '1234');
+  });
+});
+define('frontend/tests/integration/helpers/bool-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | integration/helpers/bool-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/helpers/bool-test.js should pass jshint.');
+  });
+});
 define('frontend/tests/models/mentor.jshint.lint-test', [], function () {
   'use strict';
 
@@ -655,7 +670,7 @@ define('frontend/tests/models/student.jshint.lint-test', [], function () {
   QUnit.module('JSHint | models/student.js');
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
-    assert.ok(false, 'models/student.js should pass jshint.\nmodels/student.js: line 5, col 5, \'attr\' is defined but never used.\n\n1 error');
+    assert.ok(true, 'models/student.js should pass jshint.');
   });
 });
 define('frontend/tests/models/user.jshint.lint-test', [], function () {
@@ -703,13 +718,22 @@ define('frontend/tests/routes/login.jshint.lint-test', [], function () {
     assert.ok(true, 'routes/login.js should pass jshint.');
   });
 });
-define('frontend/tests/routes/mentor.jshint.lint-test', [], function () {
+define('frontend/tests/routes/mentors/create.jshint.lint-test', [], function () {
   'use strict';
 
-  QUnit.module('JSHint | routes/mentor.js');
+  QUnit.module('JSHint | routes/mentors/create.js');
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
-    assert.ok(true, 'routes/mentor.js should pass jshint.');
+    assert.ok(true, 'routes/mentors/create.js should pass jshint.');
+  });
+});
+define('frontend/tests/routes/mentors/index.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | routes/mentors/index.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/mentors/index.js should pass jshint.');
   });
 });
 define('frontend/tests/routes/register.jshint.lint-test', [], function () {
@@ -719,15 +743,6 @@ define('frontend/tests/routes/register.jshint.lint-test', [], function () {
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
     assert.ok(true, 'routes/register.js should pass jshint.');
-  });
-});
-define('frontend/tests/serializers/student.jshint.lint-test', [], function () {
-  'use strict';
-
-  QUnit.module('JSHint | serializers/student.js');
-  QUnit.test('should pass jshint', function (assert) {
-    assert.expect(1);
-    assert.ok(true, 'serializers/student.js should pass jshint.');
   });
 });
 define('frontend/tests/services/auth-manager.jshint.lint-test', [], function () {
@@ -798,6 +813,11 @@ define('frontend/tests/tests.lint-test', [], function () {
     assert.ok(true, 'integration/components/modal-dialog-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('integration/helpers/bool-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'integration/helpers/bool-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('test-helper.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'test-helper.js should pass ESLint\n\n');
@@ -818,9 +838,24 @@ define('frontend/tests/tests.lint-test', [], function () {
     assert.ok(true, 'unit/adapters/user-test.js should pass ESLint\n\n');
   });
 
+  QUnit.test('unit/controllers/index-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/index-test.js should pass ESLint\n\n');
+  });
+
   QUnit.test('unit/controllers/mentor-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/controllers/mentor-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/controllers/mentors/create-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/mentors/create-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/controllers/mentors/index-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/mentors/index-test.js should pass ESLint\n\n');
   });
 
   QUnit.test('unit/initializers/session-test.js', function (assert) {
@@ -841,6 +876,16 @@ define('frontend/tests/tests.lint-test', [], function () {
   QUnit.test('unit/routes/mentor-test.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/routes/mentor-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/mentors/create-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/mentors/create-test.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('unit/routes/mentors/index-test.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/mentors/index-test.js should pass ESLint\n\n');
   });
 
   QUnit.test('unit/serializers/user-test.js', function (assert) {
@@ -917,6 +962,29 @@ define('frontend/tests/unit/adapters/user-test.jshint.lint-test', [], function (
     assert.ok(true, 'unit/adapters/user-test.js should pass jshint.');
   });
 });
+define('frontend/tests/unit/controllers/index-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('controller:index', 'Unit | Controller | index', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  // Replace this with your real tests.
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var controller = this.subject();
+    assert.ok(controller);
+  });
+});
+define('frontend/tests/unit/controllers/index-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/controllers/index-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/index-test.js should pass jshint.');
+  });
+});
 define('frontend/tests/unit/controllers/mentor-test', ['ember-qunit'], function (_emberQunit) {
   'use strict';
 
@@ -938,6 +1006,52 @@ define('frontend/tests/unit/controllers/mentor-test.jshint.lint-test', [], funct
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/controllers/mentor-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/unit/controllers/mentors/create-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('controller:mentors/create', 'Unit | Controller | mentors/create', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  // Replace this with your real tests.
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var controller = this.subject();
+    assert.ok(controller);
+  });
+});
+define('frontend/tests/unit/controllers/mentors/create-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/controllers/mentors/create-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/mentors/create-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/unit/controllers/mentors/index-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('controller:mentors/index', 'Unit | Controller | mentors/index', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  // Replace this with your real tests.
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var controller = this.subject();
+    assert.ok(controller);
+  });
+});
+define('frontend/tests/unit/controllers/mentors/index-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/controllers/mentors/index-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/mentors/index-test.js should pass jshint.');
   });
 });
 define('frontend/tests/unit/initializers/session-test', ['frontend/initializers/session', 'qunit', 'frontend/tests/helpers/destroy-app'], function (_session, _qunit, _destroyApp) {
@@ -1044,6 +1158,50 @@ define('frontend/tests/unit/routes/mentor-test.jshint.lint-test', [], function (
   QUnit.test('should pass jshint', function (assert) {
     assert.expect(1);
     assert.ok(true, 'unit/routes/mentor-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/unit/routes/mentors/create-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('route:mentors/create', 'Unit | Route | mentors/create', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var route = this.subject();
+    assert.ok(route);
+  });
+});
+define('frontend/tests/unit/routes/mentors/create-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/routes/mentors/create-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/mentors/create-test.js should pass jshint.');
+  });
+});
+define('frontend/tests/unit/routes/mentors/index-test', ['ember-qunit'], function (_emberQunit) {
+  'use strict';
+
+  (0, _emberQunit.moduleFor)('route:mentors/index', 'Unit | Route | mentors/index', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  (0, _emberQunit.test)('it exists', function (assert) {
+    var route = this.subject();
+    assert.ok(route);
+  });
+});
+define('frontend/tests/unit/routes/mentors/index-test.jshint.lint-test', [], function () {
+  'use strict';
+
+  QUnit.module('JSHint | unit/routes/mentors/index-test.js');
+  QUnit.test('should pass jshint', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/mentors/index-test.js should pass jshint.');
   });
 });
 define('frontend/tests/unit/serializers/user-test', ['ember-qunit'], function (_emberQunit) {

@@ -11,7 +11,7 @@ from api.models import *
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'url', 'username', 'email', 'groups', 'password')
+        fields = ('url', 'username', 'email', 'groups', 'password', 'student', 'mentor')
         #fields = ('url', 'username', 'email', 'groups', 'experiments')
 
 
@@ -27,14 +27,16 @@ class PermissionSerializer(serializers.HyperlinkedModelSerializer):
 
 class MentorSerializer(serializers.HyperlinkedModelSerializer):
     #fields = '__all__'
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Mentor
-        fields = (  'user', 'video', 'cv', 'bio', 'researchinterest', 'institution','job','fieldofstudy', 'webpage', 'experience')
+        fields = ('user', 'video', 'cv', 'bio', 'researchinterest', 'institution','job','fieldofstudy', 'webpage', 'experience', 'students')
 
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Student
-        fields = ('user', 'mentors',)
+        fields = ('user', 'mentors', 'mentorsclicked','noofmentors')
 
 # class EventSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:

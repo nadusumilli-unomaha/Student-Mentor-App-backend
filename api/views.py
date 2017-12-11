@@ -11,6 +11,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
+from rest_framework.permissions import (
+        AllowAny,
+        IsAuthenticated,
+        IsAdminUser,
+        IsAuthenticatedOrReadOnly
+    )
 
 from api.models import *
 from api.serializers import *
@@ -35,6 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
     resource_name = 'users'
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 class MentorViewSet(viewsets.ModelViewSet):
     """
@@ -43,15 +50,16 @@ class MentorViewSet(viewsets.ModelViewSet):
     resource_name = 'mentors'
     queryset = Mentor.objects.all()
     serializer_class = MentorSerializer
+    permission_classes = [IsAuthenticated]
 
 class StudentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed.
     """
-    permission_classes = (AllowAny,)
     resource_name = 'students'
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    permission_classes = [IsAuthenticated]
 
 class PermissionViewSet(viewsets.ModelViewSet):
     """
@@ -59,6 +67,7 @@ class PermissionViewSet(viewsets.ModelViewSet):
     """
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
+    permission_classes = [IsAuthenticated]
 
 class GroupViewSet(viewsets.ModelViewSet):
     """
@@ -66,6 +75,42 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+
+class AddMentor(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('mentor'):
+            mentor = Mentor.objects.get(id=request.POST.get('mentor'))
+        if request.POST.get('user'):
+            user = User.objects.get(id=request.POST.get('user'))
+            student = Student.objects.get(id=user.student.id)
+        if student.noofmentors < 5:
+            student.noofmentors += 1
+            student.save(update_fields=['noofmentors'])
+        try:
+            student.mentors.add(mentor)
+        except ValidationError as e:
+            print(e)
+            return Response({'success': False, 'status':status.HTTP_400_BAD_REQUEST}) 
+        return Response({'success': True, 'status':status.HTTP_200_OK})
+
+class RemoveMentor(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('mentor'):
+            mentor = Mentor.objects.get(id=request.POST.get('mentor'))
+        if request.POST.get('student'):
+            student = Student.objects.get(id=request.POST.get('student'))
+            if student.noofmentors > 0:
+                student.noofmentors -= 1
+                student.save(update_fields=['noofmentors'])
+        try:
+            student.mentors.remove(mentor)
+        except ValidationError as e:
+            print(e)
+            return Response({'success': False, 'status':status.HTTP_400_BAD_REQUEST}) 
+        return Response({'success': True, 'status':status.HTTP_200_OK})
 
 
 class Session(APIView):

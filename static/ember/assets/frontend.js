@@ -12,30 +12,6 @@ define('frontend/adapters/application', ['exports', 'ember-data'], function (exp
 		namespace: 'api'
 	});
 });
-define('frontend/adapters/google', ['exports', 'ember-simple-auth/mixins/data-adapter-mixin', 'ember-data'], function (exports, _dataAdapterMixin, _emberData) {
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.default = _emberData.default.RESTAdapter.extend(_dataAdapterMixin.default, {
-		authorizer: 'authorizer:google',
-		host: 'https://googleapis/com'
-	});
-});
-define('frontend/adapters/student', ['exports', 'frontend/adapters/google'], function (exports, _google) {
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.default = _google.default.extend({
-		namespace: 'oauth2/v1',
-		pathForType: function pathForType() {
-			return 'userinfo';
-		}
-	});
-});
 define('frontend/app', ['exports', 'frontend/resolver', 'ember-load-initializers', 'frontend/config/environment'], function (exports, _resolver, _emberLoadInitializers, _environment) {
   'use strict';
 
@@ -57,44 +33,6 @@ define('frontend/app', ['exports', 'frontend/resolver', 'ember-load-initializers
   (0, _emberLoadInitializers.default)(App, _environment.default.modulePrefix);
 
   exports.default = App;
-});
-define('frontend/authenticators/torii', ['exports', 'ember-simple-auth/authenticators/torii', 'frontend/config/environment'], function (exports, _torii, _environment) {
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	var $ = Ember.$,
-	    RSVP = Ember.RSVP,
-	    service = Ember.inject.service;
-	exports.default = _torii.default.extend({
-		torii: service('torii'),
-		authenticate: function authenticate(provider, options) {
-			return this.get('torii').open(provider, options).then(function (authResponse) {
-				return new RSVP.Promise(function (resolve, reject) {
-					return $.ajax(_environment.default.domainURL + '/api/session/', {
-						type: 'POST',
-						data: {
-							'code': authResponse.authorizationCode,
-							'redirect_uri': authResponse.redirectUri,
-							'type': 'googleapi',
-							'client_id': _environment.default.torii.providers['google-oauth2'].apiKey
-						},
-						success: resolve,
-						error: reject
-					});
-				});
-			});
-		}
-	});
-});
-define('frontend/authorizers/google', ['exports', 'ember-simple-auth/authorizers/oauth2-bearer'], function (exports, _oauth2Bearer) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = _oauth2Bearer.default.extend();
 });
 define('frontend/components/basic-dropdown', ['exports', 'ember-basic-dropdown/components/basic-dropdown'], function (exports, _basicDropdown) {
   'use strict';
@@ -2062,6 +2000,30 @@ define('frontend/components/x-select', ['exports', 'emberx-select/components/x-s
   });
   exports.default = _xSelect.default;
 });
+define('frontend/controllers/index', ['exports', 'frontend/config/environment'], function (exports, _environment) {
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	var Controller = Ember.Controller;
+	exports.default = Controller.extend({
+		actions: {
+			removeMentor: function removeMentor(mentor, student) {
+				var t = this;
+				var data = {
+					'mentor': mentor,
+					'student': student
+				};
+				Ember.$.post(_environment.default.domainURL + '/api/removeMentor/', data, function (response) {
+					if (response.data.success) {
+						t.get('auth').set('mentorRemoved', 'You have removed the student from this mentor successfully');
+					}
+				});
+			}
+		}
+	});
+});
 define('frontend/controllers/login', ['exports'], function (exports) {
 	'use strict';
 
@@ -2094,7 +2056,7 @@ define('frontend/controllers/login', ['exports'], function (exports) {
 		}
 	});
 });
-define('frontend/controllers/mentor', ['exports', 'ember-cli-pagination/computed/paged-array'], function (exports, _pagedArray) {
+define('frontend/controllers/mentors/create', ['exports'], function (exports) {
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -2102,7 +2064,31 @@ define('frontend/controllers/mentor', ['exports', 'ember-cli-pagination/computed
 	});
 	var Controller = Ember.Controller;
 	exports.default = Controller.extend({
+
+		actions: {
+			postMentor: function postMentor() {}
+		}
+	});
+});
+define('frontend/controllers/mentors/index', ['exports', 'frontend/config/environment', 'ember-cli-pagination/computed/paged-array'], function (exports, _environment, _pagedArray) {
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	var Controller = Ember.Controller,
+	    service = Ember.inject.service;
+	exports.default = Controller.extend({
+		auth: service('auth-manager'),
 		selectedMentor: null,
+		displayMessage: false,
+		mentorRegistered: Ember.computed('model', function () {
+			console.log('Hello');
+			this.get('model').foreach(function (mentor) {
+				console.log(mentor);
+			});
+			return false;
+		}),
 
 		// setup our query params
 		queryParams: ["page", "perPage"],
@@ -2110,7 +2096,7 @@ define('frontend/controllers/mentor', ['exports', 'ember-cli-pagination/computed
 		// set default values, can cause problems if left out
 		// if value matches default, it won't display in the URL
 		page: 1,
-		perPage: 10,
+		perPage: 5,
 
 		// can be called anything, I've called it pagedContent
 		// remember to iterate over pagedContent in your template
@@ -2124,8 +2110,18 @@ define('frontend/controllers/mentor', ['exports', 'ember-cli-pagination/computed
 		totalPages: Ember.computed.oneWay("pagedContent.totalPages"),
 
 		actions: {
-			submit: function submit() {
-				console.log('This is where i send an email or just add the mentor relationship to the student.');
+			submit: function submit(mentor, user) {
+				var t = this;
+				var data = {
+					'mentor': mentor.id,
+					'user': user
+				};
+				Ember.$.post(_environment.default.domainURL + '/api/addMentor/', data, function (response) {
+					if (response.data.success) {
+						t.get('auth').set('mentorAdded', 'You have registered for this mentor successfully');
+					}
+				});
+				this.set('modal1', false);
 			},
 
 			setMentor: function setMentor(mentor) {
@@ -2355,6 +2351,27 @@ define('frontend/helpers/array', ['exports', 'ember-composable-helpers/helpers/a
       return _array.array;
     }
   });
+});
+define('frontend/helpers/bool', ['exports'], function (exports) {
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.bool = bool;
+	var helper = Ember.Helper.helper;
+	function bool(params /*, hash*/) {
+		return params.reduce(function (a, b) {
+			var buttonClass = '';
+			console.log(a + " is not equal " + b);
+			if (a === b) {
+				buttonClass = 'disable';
+			}
+			return buttonClass;
+		});
+	}
+
+	exports.default = helper(bool);
 });
 define('frontend/helpers/bs-contains', ['exports', 'ember-bootstrap/helpers/bs-contains'], function (exports, _bsContains) {
   'use strict';
@@ -3881,26 +3898,29 @@ define('frontend/mixins/transition-mixin', ['exports', 'ember-css-transitions/mi
   });
 });
 define('frontend/models/mentor', ['exports', 'ember-data'], function (exports, _emberData) {
-  'use strict';
+   'use strict';
 
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  var Model = _emberData.default.Model,
-      attr = _emberData.default.attr;
-  exports.default = Model.extend({
-    user: _emberData.default.belongsTo('user'),
-    video: attr(),
-    cv: attr(),
-    bio: attr(),
-    researchinterest: attr(),
-    institution: attr(),
-    job: attr(),
-    fieldofstudy: attr(),
-    webpage: attr(),
-    experience: attr(),
-    studentsmaxedout: attr()
-  });
+   Object.defineProperty(exports, "__esModule", {
+      value: true
+   });
+   var Model = _emberData.default.Model,
+       attr = _emberData.default.attr,
+       belongsTo = _emberData.default.belongsTo,
+       hasMany = _emberData.default.hasMany;
+   exports.default = Model.extend({
+      user: belongsTo('user'),
+      students: hasMany('student'),
+      video: attr(),
+      cv: attr(),
+      bio: attr(),
+      researchinterest: attr(),
+      institution: attr(),
+      job: attr(),
+      fieldofstudy: attr(),
+      webpage: attr(),
+      experience: attr(),
+      studentsmaxedout: attr()
+   });
 });
 define('frontend/models/student', ['exports', 'ember-data'], function (exports, _emberData) {
 	'use strict';
@@ -3909,8 +3929,15 @@ define('frontend/models/student', ['exports', 'ember-data'], function (exports, 
 		value: true
 	});
 	var Model = _emberData.default.Model,
+	    belongsTo = _emberData.default.belongsTo,
+	    hasMany = _emberData.default.hasMany,
 	    attr = _emberData.default.attr;
-	exports.default = Model.extend({});
+	exports.default = Model.extend({
+		user: belongsTo('user'),
+		mentors: hasMany('mentor'),
+		mentorsclicked: attr(),
+		noofmentors: attr()
+	});
 });
 define('frontend/models/user', ['exports', 'ember-data'], function (exports, _emberData) {
 	'use strict';
@@ -3919,8 +3946,8 @@ define('frontend/models/user', ['exports', 'ember-data'], function (exports, _em
 		value: true
 	});
 	exports.default = _emberData.default.Model.extend({
-		// profile: DS.belongsTo('profile'),
-		// groups: DS.hasMany('group'),
+		mentor: _emberData.default.belongsTo('mentor'),
+		student: _emberData.default.belongsTo('student'),
 		username: _emberData.default.attr(),
 		email: _emberData.default.attr()
 		// password: DS.attr(),
@@ -3949,10 +3976,13 @@ define('frontend/router', ['exports', 'frontend/config/environment'], function (
   });
 
   Router.map(function () {
-    this.route('login', { path: '/login' });
+    this.route('login', { path: '/' });
     this.route('register', { path: '/register' });
-    this.route('index', { path: '/' });
-    this.route('mentor', { path: '/mentors' });
+    this.route('index', { path: '/admin' });
+    this.route('mentors', function () {
+      this.route('index', { path: '/' });
+      this.route('create');
+    });
   });
 
   exports.default = Router;
@@ -3967,24 +3997,6 @@ define('frontend/routes/application', ['exports'], function (exports) {
   exports.default = Route.extend();
 });
 define('frontend/routes/index', ['exports'], function (exports) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  var Route = Ember.Route;
-  exports.default = Route.extend({});
-});
-define('frontend/routes/login', ['exports'], function (exports) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  var Route = Ember.Route;
-  exports.default = Route.extend({});
-});
-define('frontend/routes/mentor', ['exports'], function (exports) {
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -3992,6 +4004,45 @@ define('frontend/routes/mentor', ['exports'], function (exports) {
 	});
 	var Route = Ember.Route;
 	exports.default = Route.extend({
+		authManager: Ember.inject.service('auth-manager'),
+		beforeModel: function beforeModel(transition) {
+			this.get('authManager').routeRestriction(transition, 'login');
+		},
+		model: function model() {
+			return this.store.findAll('mentor');
+		}
+	});
+});
+define('frontend/routes/login', ['exports'], function (exports) {
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	var Route = Ember.Route;
+	exports.default = Route.extend({});
+});
+define('frontend/routes/mentors/create', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  var Route = Ember.Route;
+  exports.default = Route.extend({});
+});
+define('frontend/routes/mentors/index', ['exports'], function (exports) {
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	var Route = Ember.Route;
+	exports.default = Route.extend({
+		authManager: Ember.inject.service('auth-manager'),
+		beforeModel: function beforeModel(transition) {
+			this.get('authManager').routeRestriction(transition, 'login');
+		},
 		model: function model() {
 			return this.store.findAll('mentor');
 		}
@@ -4012,14 +4063,6 @@ define('frontend/routes/register', ['exports'], function (exports) {
 			});
 		}
 	});
-});
-define('frontend/serializers/student', ['exports', 'ember-data'], function (exports, _emberData) {
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.default = _emberData.default.JSONSerializer.extend({});
 });
 define('frontend/services/ajax', ['exports', 'ember-ajax/services/ajax'], function (exports, _ajax) {
   'use strict';
@@ -4101,7 +4144,7 @@ define('frontend/services/auth-manager', ['exports', 'frontend/config/environmen
 					if (response.data.issuperuser) {
 						auth.get('routing').transitionTo('index');
 					} else {
-						auth.get('routing').transitionTo('mentor');
+						auth.get('routing').transitionTo('mentors.index');
 					}
 
 					console.log('Login POST Request to ../api/session/ was successful.');
@@ -4156,6 +4199,11 @@ define('frontend/services/auth-manager', ['exports', 'frontend/config/environmen
 					auth.set('user', auth.get('store').findRecord('user', response.data.userid));
 					auth.set('isLoggedIn', true);
 					auth.set('isSuperUser', response.data.issuperuser);
+					if (response.data.issuperuser) {
+						auth.get('routing').transitionTo('index');
+					} else {
+						auth.get('routing').transitionTo('mentors.index');
+					}
 				} else {
 					//errors
 					console.log('The user is not currently logged in.');
@@ -4571,7 +4619,7 @@ define("frontend/templates/application", ["exports"], function (exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "BB0/1qzE", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[9,\"class\",\"container-fluid\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[1,[18,\"nav-bar\"],false],[0,\"\\n\\t\"],[8],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[1,[18,\"outlet\"],false],[0,\"\\n\\t\"],[8],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[1,[18,\"page-footer\"],false],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8],[0,\"\\n\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/application.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "bu+/FSIg", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[9,\"class\",\"container-fluid\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[1,[18,\"nav-bar\"],false],[0,\"\\n\\t\"],[8],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[1,[18,\"outlet\"],false],[0,\"\\n\\t\"],[8],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row footer\"],[7],[0,\"\\n\\t\\t\"],[1,[18,\"page-footer\"],false],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8],[0,\"\\n\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/application.hbs" } });
 });
 define('frontend/templates/components/ember-popper', ['exports', 'ember-popper/templates/components/ember-popper'], function (exports, _emberPopper) {
   'use strict';
@@ -4592,7 +4640,7 @@ define("frontend/templates/components/nav-bar", ["exports"], function (exports) 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "eOLIlNYQ", "block": "{\"symbols\":[],\"statements\":[[0,\"\\n\"],[6,\"nav\"],[9,\"class\",\"navbar navbar-default\"],[7],[0,\"\\n  \"],[6,\"div\"],[9,\"class\",\"container-fluid\"],[7],[0,\"\\n    \"],[2,\" Brand and toggle get grouped for better mobile display \"],[0,\"\\n    \"],[6,\"div\"],[9,\"class\",\"navbar-header\"],[7],[0,\"\\n      \"],[6,\"button\"],[9,\"type\",\"button\"],[9,\"class\",\"navbar-toggle collapsed\"],[9,\"data-toggle\",\"collapse\"],[9,\"data-target\",\"#bs-example-navbar-collapse-1\"],[9,\"aria-expanded\",\"false\"],[7],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"sr-only\"],[7],[0,\"Toggle navigation\"],[8],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"icon-bar\"],[7],[8],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"icon-bar\"],[7],[8],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"icon-bar\"],[7],[8],[0,\"\\n      \"],[8],[0,\"\\n      \"],[4,\"link-to\",[\"index\"],null,{\"statements\":[[6,\"a\"],[9,\"class\",\"navbar-brand\"],[9,\"href\",\"#\"],[7],[0,\"Student App\"],[8]],\"parameters\":[]},null],[0,\"\\n    \"],[8],[0,\"\\n\\n    \"],[2,\" Collect the nav links, forms, and other content for toggling \"],[0,\"\\n    \"],[6,\"div\"],[9,\"class\",\"collapse navbar-collapse\"],[9,\"id\",\"bs-example-navbar-collapse-1\"],[7],[0,\"\\n      \"],[6,\"ul\"],[9,\"class\",\"nav navbar-nav\"],[7],[0,\"\\n      \"],[8],[0,\"\\n\"],[4,\"if\",[[20,[\"auth\",\"isLoggedIn\"]]],null,{\"statements\":[[0,\"        \"],[6,\"ul\"],[9,\"class\",\"nav navbar-nav pull-right\"],[7],[0,\"\\n          \"],[6,\"li\"],[9,\"class\",\"dropdown\"],[7],[0,\"\\n            \"],[6,\"a\"],[9,\"class\",\"dropdown-toggle\"],[9,\"data-toggle\",\"dropdown\"],[9,\"href\",\"#\"],[7],[1,[20,[\"auth\",\"user\",\"username\"]],false],[0,\"\\n            \"],[6,\"span\"],[9,\"class\",\"caret\"],[7],[8],[8],[0,\"\\n            \"],[6,\"ul\"],[9,\"class\",\"dropdown-menu\"],[7],[0,\"\\n              \"],[6,\"li\"],[7],[6,\"a\"],[9,\"href\",\"#\"],[3,\"action\",[[19,0,[]],\"logout\"]],[7],[6,\"i\"],[9,\"class\",\"glyphicon glyphicon-off\"],[7],[8],[0,\"  Log out\"],[8],[8],[0,\"\\n            \"],[8],[0,\"\\n          \"],[8],[0,\"\\n        \"],[8],[0,\"\\n\"]],\"parameters\":[]},{\"statements\":[[0,\"        \"],[6,\"ul\"],[9,\"class\",\"nav navbar-nav pull-right\"],[7],[0,\"\\n          \"],[4,\"link-to\",[\"login\"],[[\"tagName\"],[\"li\"]],{\"statements\":[[6,\"a\"],[9,\"href\",\"\"],[7],[0,\"Login\"],[8]],\"parameters\":[]},null],[0,\"\\n        \"],[8],[0,\"\\n\"]],\"parameters\":[]}],[0,\"    \"],[8],[2,\" /.navbar-collapse \"],[0,\"\\n  \"],[8],[2,\" /.container-fluid \"],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/components/nav-bar.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "rMVR2q4w", "block": "{\"symbols\":[],\"statements\":[[0,\"\\n\"],[6,\"nav\"],[9,\"class\",\"navbar navbar-default\"],[7],[0,\"\\n  \"],[6,\"div\"],[9,\"class\",\"container-fluid\"],[7],[0,\"\\n    \"],[2,\" Brand and toggle get grouped for better mobile display \"],[0,\"\\n    \"],[6,\"div\"],[9,\"class\",\"navbar-header\"],[7],[0,\"\\n      \"],[6,\"button\"],[9,\"type\",\"button\"],[9,\"class\",\"navbar-toggle collapsed\"],[9,\"data-toggle\",\"collapse\"],[9,\"data-target\",\"#bs-example-navbar-collapse-1\"],[9,\"aria-expanded\",\"false\"],[7],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"sr-only\"],[7],[0,\"Toggle navigation\"],[8],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"icon-bar\"],[7],[8],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"icon-bar\"],[7],[8],[0,\"\\n        \"],[6,\"span\"],[9,\"class\",\"icon-bar\"],[7],[8],[0,\"\\n      \"],[8],[0,\"\\n      \"],[4,\"link-to\",[\"login\"],null,{\"statements\":[[6,\"a\"],[9,\"class\",\"navbar-brand\"],[9,\"href\",\"#\"],[7],[0,\"Student App\"],[8]],\"parameters\":[]},null],[0,\"\\n    \"],[8],[0,\"\\n\\n    \"],[2,\" Collect the nav links, forms, and other content for toggling \"],[0,\"\\n    \"],[6,\"div\"],[9,\"class\",\"collapse navbar-collapse\"],[9,\"id\",\"bs-example-navbar-collapse-1\"],[7],[0,\"\\n      \"],[6,\"ul\"],[9,\"class\",\"nav navbar-nav\"],[7],[0,\"\\n      \"],[8],[0,\"\\n\"],[4,\"if\",[[20,[\"auth\",\"isLoggedIn\"]]],null,{\"statements\":[[0,\"        \"],[6,\"ul\"],[9,\"class\",\"nav navbar-nav pull-right\"],[7],[0,\"\\n          \"],[6,\"li\"],[9,\"class\",\"dropdown\"],[7],[0,\"\\n            \"],[6,\"a\"],[9,\"class\",\"dropdown-toggle\"],[9,\"data-toggle\",\"dropdown\"],[9,\"href\",\"#\"],[7],[1,[20,[\"auth\",\"user\",\"username\"]],false],[0,\"\\n            \"],[6,\"span\"],[9,\"class\",\"caret\"],[7],[8],[8],[0,\"\\n            \"],[6,\"ul\"],[9,\"class\",\"dropdown-menu\"],[7],[0,\"\\n              \"],[6,\"li\"],[7],[6,\"a\"],[9,\"href\",\"#\"],[3,\"action\",[[19,0,[]],\"logout\"]],[7],[6,\"i\"],[9,\"class\",\"glyphicon glyphicon-off\"],[7],[8],[0,\"  Log out\"],[8],[8],[0,\"\\n            \"],[8],[0,\"\\n          \"],[8],[0,\"\\n        \"],[8],[0,\"\\n\"]],\"parameters\":[]},{\"statements\":[[0,\"        \"],[6,\"ul\"],[9,\"class\",\"nav navbar-nav pull-right\"],[7],[0,\"\\n          \"],[4,\"link-to\",[\"login\"],[[\"tagName\"],[\"li\"]],{\"statements\":[[6,\"a\"],[9,\"href\",\"\"],[7],[0,\"Login\"],[8]],\"parameters\":[]},null],[0,\"\\n        \"],[8],[0,\"\\n\"]],\"parameters\":[]}],[0,\"    \"],[8],[2,\" /.navbar-collapse \"],[0,\"\\n  \"],[8],[2,\" /.container-fluid \"],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/components/nav-bar.hbs" } });
 });
 define("frontend/templates/components/page-footer", ["exports"], function (exports) {
   "use strict";
@@ -4600,7 +4648,7 @@ define("frontend/templates/components/page-footer", ["exports"], function (expor
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "LTHNe6Oz", "block": "{\"symbols\":[],\"statements\":[[6,\"footer\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"copyrights\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-xs-4 col-xs-offset-4\"],[7],[0,\"\\n\\t\\t\\tStudent App © 2017, All Rights Reserved\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/components/page-footer.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "22QXuC+i", "block": "{\"symbols\":[],\"statements\":[[6,\"footer\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"copyright\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-4 col-md-offset-4\"],[7],[0,\"\\n\\t\\t\\tStudent App © 2017, All Rights Reserved\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/components/page-footer.hbs" } });
 });
 define("frontend/templates/components/transition-group", ["exports"], function (exports) {
   "use strict";
@@ -4629,7 +4677,7 @@ define("frontend/templates/index", ["exports"], function (exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "+wJdlQ/3", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[9,\"class\",\"container\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row adminButtons\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-12\"],[7],[0,\"\\n\\t\\t\\t\"],[6,\"button\"],[9,\"type\",\"button\"],[9,\"class\",\"btn btn-primary\"],[7],[0,\"Add mentors\"],[8],[0,\"\\n\\t\\t\\t\"],[6,\"button\"],[9,\"type\",\"button\"],[9,\"class\",\"btn btn-primary\"],[7],[0,\"Manage Students\"],[8],[0,\"\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-6\"],[7],[0,\"\\n\\t\\t\\tmentors\\n\\t\\t\"],[8],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-6\"],[7],[0,\"\\n\\t\\t\\tstudents\\n\\t\\t\"],[8],[0,\"\\t\\t\\n\\t\"],[8],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/index.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "rOGPtvAG", "block": "{\"symbols\":[\"mentor\",\"student\",\"i\"],\"statements\":[[6,\"div\"],[9,\"class\",\"container\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row adminButtons\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-12\"],[7],[0,\"\\n\\t\\t\\t\"],[4,\"link-to\",[\"mentors.create\"],null,{\"statements\":[[6,\"a\"],[9,\"class\",\"btn btn-primary\"],[7],[0,\"Add Mentors\"],[8]],\"parameters\":[]},null],[0,\"\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[6,\"h2\"],[7],[0,\"Mentors\"],[8],[0,\"\\n\\t\\t\"],[6,\"p\"],[7],[0,\"The table contains all the mentors and the students who enrolled under them.\"],[8],[0,\"            \\n\\t\\t\"],[6,\"table\"],[9,\"class\",\"table table-striped\"],[7],[0,\"\\n\\t\\t\\t\"],[6,\"thead\"],[7],[0,\"\\n\\t\\t\\t\\t\"],[6,\"tr\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\"],[6,\"th\"],[7],[0,\"Mentors\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\"],[6,\"th\"],[7],[0,\"Students\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\"],[6,\"th\"],[7],[0,\"Actions\"],[8],[0,\"\\n\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\"],[8],[0,\"\\n\"],[4,\"each\",[[20,[\"model\"]]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\"],[6,\"tbody\"],[7],[0,\"\\n\"],[4,\"each\",[[19,1,[\"students\"]]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\"],[6,\"tr\"],[7],[0,\"\\n\"],[4,\"if\",[[25,\"equal\",[[19,3,[]],0],null]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"td\"],[10,\"rowspan\",[19,1,[\"students\",\"length\"]],null],[7],[1,[19,1,[\"user\",\"username\"]],false],[8],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\t\\t\\t\\t\\t\\t\\t\"],[6,\"td\"],[7],[1,[19,2,[\"user\",\"username\"]],false],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"td\"],[7],[4,\"bs-button\",null,[[\"class\",\"onClick\"],[\"btn btn-primary\",[25,\"action\",[[19,0,[]],\"removeMentor\",[19,1,[\"id\"]],[19,2,[\"id\"]]],null]]],{\"statements\":[[0,\"Detach Student\"]],\"parameters\":[]},null],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\"]],\"parameters\":[2,3]},null],[4,\"if\",[[25,\"equal\",[[19,1,[\"students\",\"length\"]],0],null]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\"],[6,\"tr\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"td\"],[7],[1,[19,1,[\"user\",\"username\"]],false],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"td\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"td\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\t\\t\\t\\t\"],[8],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/index.hbs" } });
 });
 define("frontend/templates/login", ["exports"], function (exports) {
   "use strict";
@@ -4639,13 +4687,21 @@ define("frontend/templates/login", ["exports"], function (exports) {
   });
   exports.default = Ember.HTMLBars.template({ "id": "GAEZu60X", "block": "{\"symbols\":[],\"statements\":[[6,\"div\"],[9,\"class\",\"container\"],[9,\"style\",\"margin-top:40px\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\"],[0,\"\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-sm-6 col-md-4 col-md-offset-4 login-box shadow-2\"],[7],[0,\"\\n\\t\\t\\t\"],[6,\"form\"],[7],[0,\"\\n\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"login-img-wrapper\"],[7],[0,\"\\n\"],[0,\"\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"row login-box\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-sm-12 col-md-10 col-md-offset-1\"],[7],[0,\"\\n\"],[4,\"if\",[[20,[\"auth\",\"errorMsg\"]]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"alert alert-danger\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"p\"],[9,\"style\",\"text-align: center;\"],[7],[0,\"Incorrect username/password\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\"]],\"parameters\":[]},null],[0,\"\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"form-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"input-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"span\"],[9,\"class\",\"input-group-addon\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"i\"],[9,\"class\",\"glyphicon glyphicon-user\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[25,\"input\",null,[[\"type\",\"class\",\"value\",\"enter\",\"placeholder\",\"autofocus\"],[\"text\",\"input-sm form-control\",[20,[\"auth\",\"username\"]],\"login\",\"Username\",\"autofocus\"]]],false],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"form-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"input-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"span\"],[9,\"class\",\"input-group-addon\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"i\"],[9,\"class\",\"glyphicon glyphicon-lock\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[25,\"input\",null,[[\"type\",\"class\",\"value\",\"enter\",\"placeholder\"],[\"password\",\"input-sm form-control\",[20,[\"auth\",\"password\"]],\"login\",\"Password\"]]],false],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"form-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"input-group rememberlogin\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"label\"],[9,\"class\",\"checkbox\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[25,\"input\",null,[[\"type\",\"checked\"],[\"checkbox\",[20,[\"auth\",\"remember\"]]]]],false],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\tRemember me\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"form-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"input\"],[9,\"type\",\"submit\"],[9,\"class\",\"btn btn-lg btn-primary btn-block\"],[9,\"value\",\"Sign in\"],[3,\"action\",[[19,0,[]],\"login\"]],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\tNeed an account? \"],[4,\"link-to\",[\"register\"],null,{\"statements\":[[0,\"Register Now.\"]],\"parameters\":[]},null],[0,\"\\n\\n\\t\\t\\t\\t\\t\\t\"],[6,\"a\"],[9,\"href\",\"\"],[3,\"action\",[[19,0,[]],\"googleAuth\"]],[7],[0,\"Google Login\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8],[0,\"\\n\\n\\n\"],[4,\"if\",[[20,[\"session\",\"isAuthenticated\"]]],null,{\"statements\":[[0,\"\\t\"],[1,[20,[\"session\",\"currentUser\",\"name\"]],false],[0,\"\\n\"]],\"parameters\":[]},null]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/login.hbs" } });
 });
-define("frontend/templates/mentor", ["exports"], function (exports) {
+define("frontend/templates/mentors/create", ["exports"], function (exports) {
   "use strict";
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = Ember.HTMLBars.template({ "id": "mdLVmNjF", "block": "{\"symbols\":[\"form\",\"mentor\",\"i\"],\"statements\":[[6,\"div\"],[9,\"class\",\"container\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-12\"],[7],[0,\"\\n\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"well\"],[7],[0,\"\\n\"],[4,\"each\",[[20,[\"pagedContent\"]]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"panel panel-default\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"panel-body\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"iframe\"],[9,\"class\",\"iframe\"],[9,\"src\",\"https://www.youtube.com/embed/vn9mMeWcgoM\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"mentorContent\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"strong\"],[7],[1,[19,2,[\"user\",\"username\"]],false],[8],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"bio\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"cv\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"user\",\"email\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"institution\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"researchinterest\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"fieldofstudy\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"emailSubmit\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[4,\"bs-button\",null,[[\"onClick\"],[[25,\"action\",[[19,0,[]],[25,\"pipe\",[[25,\"action\",[[19,0,[]],\"setMentor\",[19,2,[]]],null],[25,\"action\",[[19,0,[]],[25,\"mut\",[[20,[\"modal1\"]]],null],true],null]],null]],null]]],{\"statements\":[[0,\"Open Modal\"]],\"parameters\":[]},null],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\n\"]],\"parameters\":[2,3]},null],[0,\"\\n\"],[4,\"bs-modal-simple\",null,[[\"title\",\"closeTitle\",\"submitTitle\",\"open\",\"onHidden\"],[\"Sign Up\",\"Cancel\",\"Send\",[20,[\"modal1\"]],[25,\"action\",[[19,0,[]],[25,\"mut\",[[20,[\"modal1\"]]],null],false],null]]],{\"statements\":[[4,\"bs-form\",null,[[\"onSubmit\",\"model\"],[[25,\"action\",[[19,0,[]],\"submit\"],null],[19,0,[]]]],{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\"],[6,\"p\"],[7],[6,\"strong\"],[7],[0,\"to:\"],[8],[0,\" \"],[1,[20,[\"selectedMentor\",\"user\",\"email\"]],false],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"p\"],[7],[6,\"strong\"],[7],[0,\"from:\"],[8],[0,\" \"],[1,[20,[\"auth\",\"user\",\"email\"]],false],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"form-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"label\"],[9,\"for\",\"emailContent\"],[7],[0,\"Content:\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"textarea\"],[9,\"class\",\"form-control\"],[9,\"rows\",\"5\"],[9,\"id\",\"emailContent\"],[7],[0,\"Prepopulated Message to send to mentor.\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\"]],\"parameters\":[1]},null]],\"parameters\":[]},null],[0,\"\\t\\t\\t\\t \\n\\t\\t\\t\\t\"],[1,[25,\"page-numbers\",null,[[\"content\"],[[20,[\"pagedContent\"]]]]],false],[0,\"\\n\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/mentor.hbs" } });
+  exports.default = Ember.HTMLBars.template({ "id": "nfg8Z8C2", "block": "{\"symbols\":[\"form\"],\"statements\":[[6,\"div\"],[9,\"class\",\"container\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"col-md-8 col-md-offset-2\"],[7],[0,\"\\n\"],[4,\"bs-form\",null,[[\"formLayout\",\"model\",\"onSubmit\"],[\"vertical\",\"mentor\",[25,\"action\",[[19,0,[]],\"postMentor\"],null]]],{\"statements\":[[0,\"\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"row reg-form-row\"],[7],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"usernameclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"username\",\"username\",\"username\",\"username\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"usernameIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"emailclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"email\",\"Email\",\"Email\",\"email\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"emailIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n            \"],[8],[0,\"\\n            \"],[6,\"div\"],[9,\"class\",\"row reg-form-row\"],[7],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"usernameclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"password\",\"Password\",\"Password\",\"password\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"usernameIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"emailclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"video\",\"Video\",\"Video\",\"video\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"emailIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n            \"],[8],[0,\"\\n            \"],[6,\"div\"],[9,\"class\",\"row reg-form-row\"],[7],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"usernameclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"cv\",\"CV\",\"CV\",\"cv\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"usernameIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"emailclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"experience\",\"Experience\",\"Experience\",\"experience\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"emailIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n            \"],[8],[0,\"\\n            \"],[6,\"div\"],[9,\"class\",\"row reg-form-row\"],[7],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"usernameclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"researchinterest\",\"Research Interest\",\"Research Interest\",\"researchinterest\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"usernameIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"emailclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"institution\",\"Institution\",\"Institution\",\"institution\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"emailIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n            \"],[8],[0,\"\\n            \"],[6,\"div\"],[9,\"class\",\"row reg-form-row\"],[7],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"usernameclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"fieldofstudy\",\"Field of Study\",\"Field of Study\",\"fieldofstudy\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"usernameIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n                \"],[6,\"div\"],[10,\"class\",[26,[\"col-md-6 \",[18,\"emailclasses\"]]]],[7],[0,\"\\n                    \"],[6,\"div\"],[9,\"class\",\"form-group has-feedback\"],[7],[0,\"\\n                        \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"placeholder\",\"property\",\"required\"],[\"webpage\",\"Webpage\",\"Webpage\",\"webpage\",true]]],false],[0,\"\\n                        \"],[6,\"i\"],[10,\"class\",[26,[\"glyphicon glyphicon-\",[18,\"emailIcon\"],\" form-control-feedback \"]]],[7],[8],[0,\"\\n                    \"],[8],[0,\"\\n                \"],[8],[0,\"\\n            \"],[8],[0,\"\\n            \"],[1,[25,\"component\",[[19,1,[\"element\"]]],[[\"controlType\",\"label\",\"property\",\"required\"],[\"bio\",\"Bio\",\"bio\",true]]],false],[0,\"\\n\\t\\t\\t\"],[1,[25,\"bs-button\",null,[[\"class\",\"defaultText\",\"type\",\"buttonType\"],[\"btn-block\",\"Submit\",\"primary\",\"submit\"]]],false],[0,\"\\n\"]],\"parameters\":[1]},null],[0,\"\\t\"],[8],[0,\"\\t\\n\"],[8],[0,\"\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/mentors/create.hbs" } });
+});
+define("frontend/templates/mentors/index", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "kOujZxE/", "block": "{\"symbols\":[\"form\",\"mentor\",\"student\"],\"statements\":[[6,\"div\"],[9,\"class\",\"container\"],[7],[0,\"\\n\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-12\"],[7],[0,\"\\n\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"well\"],[7],[0,\"\\n\\t\\t\\t\\t\"],[1,[25,\"page-numbers\",null,[[\"content\"],[[20,[\"pagedContent\"]]]]],false],[0,\"\\n\"],[4,\"each\",[[20,[\"pagedContent\"]]],null,{\"statements\":[[0,\"\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"panel panel-default\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"panel-body\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"row\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"col=md-5\"],[7],[0,\"\\n\"],[0,\"\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"iframe\"],[9,\"class\",\"iframe\"],[9,\"allowfullscreen\",\"allowfullscreen\"],[9,\"mozallowfullscreen\",\"mozallowfullscreen\"],[9,\"msallowfullscreen\",\"msallowfullscreen\"],[9,\"oallowfullscreen\",\"oallowfullscreen\"],[9,\"webkitallowfullscreen\",\"webkitallowfullscreen\"],[9,\"src\",\"https://www.youtube.com/embed/vn9mMeWcgoM\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t    \"],[8],[0,\"\\t\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"col-md-4\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"mentorContent\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[6,\"strong\"],[7],[1,[19,2,[\"user\",\"username\"]],false],[8],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"bio\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"cv\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"user\",\"email\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"institution\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"researchinterest\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[1,[19,2,[\"fieldofstudy\"]],false],[6,\"br\"],[7],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\t\\n\\t\\t\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\\t\\n\"],[0,\"\\t\\t\\t\\t\\t\\t\\t    \"],[6,\"div\"],[9,\"class\",\"col-md-3 outerDiv\"],[7],[0,\"\\n\"],[4,\"each\",[[19,2,[\"students\"]]],null,{\"statements\":[[4,\"if\",[[25,\"equal\",[[19,3,[\"user\",\"id\"]],[20,[\"auth\",\"user\",\"id\"]]],null]],null,{\"statements\":[[4,\"bs-alert\",null,[[\"type\",\"class\"],[\"info\",\"text-center\"]],{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\\t\\tAlready your Mentor\\n\"]],\"parameters\":[]},null]],\"parameters\":[]},null]],\"parameters\":[3]},null],[0,\"\\t\\t\\t\\t\\t\\t\\t\\t\\t\"],[4,\"bs-button\",null,[[\"class\",\"disabled\",\"onClick\"],[\"btn btn-primary pull-right btnMentorSubmit\",[25,\"equal\",[[20,[\"auth\",\"user\",\"student\",\"noofmentors\"]],5],null],[25,\"action\",[[19,0,[]],[25,\"pipe\",[[25,\"action\",[[19,0,[]],\"setMentor\",[19,2,[]]],null],[25,\"action\",[[19,0,[]],[25,\"mut\",[[20,[\"modal1\"]]],null],true],null]],null]],null]]],{\"statements\":[[0,\"Sign Up\"]],\"parameters\":[]},null],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t    \"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t    \"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\n\"]],\"parameters\":[2]},null],[0,\"\\n\"],[4,\"bs-modal-simple\",null,[[\"title\",\"closeTitle\",\"submitTitle\",\"open\",\"onHidden\"],[\"Sign Up\",\"Cancel\",\"Send\",[20,[\"modal1\"]],[25,\"action\",[[19,0,[]],[25,\"mut\",[[20,[\"modal1\"]]],null],false],null]]],{\"statements\":[[4,\"bs-form\",null,[[\"onSubmit\",\"model\"],[[25,\"action\",[[19,0,[]],\"submit\",[20,[\"selectedMentor\"]],[20,[\"auth\",\"user\",\"id\"]]],null],[19,0,[]]]],{\"statements\":[[0,\"\\t\\t\\t\\t\\t\\t\"],[6,\"p\"],[7],[6,\"strong\"],[7],[0,\"to:\"],[8],[0,\" \"],[1,[20,[\"selectedMentor\",\"user\",\"email\"]],false],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"p\"],[7],[6,\"strong\"],[7],[0,\"from:\"],[8],[0,\" \"],[1,[20,[\"auth\",\"user\",\"email\"]],false],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[6,\"div\"],[9,\"class\",\"form-group\"],[7],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"label\"],[9,\"for\",\"emailContent\"],[7],[0,\"Content:\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\\t\"],[6,\"textarea\"],[9,\"class\",\"form-control\"],[9,\"rows\",\"5\"],[9,\"id\",\"emailContent\"],[7],[0,\"Prepopulated Message to send to mentor.\"],[8],[0,\"\\n\\t\\t\\t\\t\\t\\t\"],[8],[0,\"\\n\"]],\"parameters\":[1]},null]],\"parameters\":[]},null],[0,\"\\t\\t\\t\\t\"],[1,[25,\"page-numbers\",null,[[\"content\"],[[20,[\"pagedContent\"]]]]],false],[0,\"\\n\\t\\t\\t\"],[8],[0,\"\\n\\t\\t\"],[8],[0,\"\\n\\t\"],[8],[0,\"\\n\"],[8]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/mentors/index.hbs" } });
 });
 define("frontend/templates/register", ["exports"], function (exports) {
   "use strict";
@@ -4690,6 +4746,6 @@ catch(err) {
 });
 
 if (!runningTests) {
-  require("frontend/app")["default"].create({"name":"frontend","version":"0.0.0+10dc87b7"});
+  require("frontend/app")["default"].create({"name":"frontend","version":"0.0.0+4fbd8192"});
 }
 //# sourceMappingURL=frontend.map
