@@ -27,4 +27,4 @@ urlpatterns = [
 
     url(r'^', views.Home),
     url(r'^api-auth-token/', obtain_auth_token),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
