@@ -1,6 +1,6 @@
 version: "3"
 services:
-  student_db:
+  db:
     restart: always
     image: postgres
     volumes:
@@ -8,15 +8,15 @@ services:
       - postgres-data1:/var/lib/postgresql/data
       - postgres-logs1:/var/log/postgresql
       - ./database-backup:/database-backup
-  student_django:
+  django:
     build: .
-    command: python /var/www/backend/manage.py runserver 0.0.0.0:8000
+    command: python /var/www/backend/manage.py runserver 0.0.0.0:8001
     volumes:
       - .:/var/www/backend
     ports:
-     - "80:8000"
+     - "81:8001"
     depends_on:
-     - student_db
+     - db
 volumes:
   postgres-config1:
   postgres-data1:
