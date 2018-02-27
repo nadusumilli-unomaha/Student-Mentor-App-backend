@@ -3,7 +3,7 @@
 # @Email:  mlhale@unomaha.edu
 # @Filename: settings.py
 # @Last modified by:   matthale
-# @Last modified time: 2018-02-27T16:09:11-06:00
+# @Last modified time: 2018-02-27T16:12:15-06:00
 # @Copyright: Copyright (C) 2018 Matthew L. Hale
 
 
@@ -33,7 +33,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'pv4_u0-hxs16=_987q5&44=t(2msa67_j^qfddi)me$hh)ajvy'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
