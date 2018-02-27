@@ -1,3 +1,13 @@
+# @Author: Matthew Hale <matthale>
+# @Date:   2017-12-11T09:59:08-06:00
+# @Email:  mlhale@unomaha.edu
+# @Filename: settings.py
+# @Last modified by:   matthale
+# @Last modified time: 2018-02-27T16:09:11-06:00
+# @Copyright: Copyright (C) 2018 Matthew L. Hale
+
+
+
 """
 Django settings for backend project.
 
