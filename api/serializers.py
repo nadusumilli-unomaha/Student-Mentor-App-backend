@@ -1,3 +1,13 @@
+# @Author: Matthew Hale <matthale>
+# @Date:   2017-12-11T09:59:08-06:00
+# @Email:  mlhale@unomaha.edu
+# @Filename: serializers.py
+# @Last modified by:   matthale
+# @Last modified time: 2018-03-01T16:10:42-06:00
+# @Copyright: Copyright (C) 2018 Matthew L. Hale
+
+
+
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 # from rest_framework_json_api.relations import *
@@ -11,7 +21,7 @@ from api.models import *
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'username', 'email', 'groups', 'password', 'student', 'mentor')
+        fields = ('url', 'username', 'email')
         #fields = ('url', 'username', 'email', 'groups', 'experiments')
 
 
