@@ -3,7 +3,7 @@
 # @Email:  mlhale@unomaha.edu
 # @Filename: models.py
 # @Last modified by:   matthale
-# @Last modified time: 2018-04-25T12:50:29-05:00
+# @Last modified time: 2018-04-25T13:00:11-05:00
 # @Copyright: Copyright (C) 2018 Matthew L. Hale
 
 
@@ -30,7 +30,7 @@ class Mentor(models.Model):
     fieldofstudy = models.CharField(max_length=200)
     webpage = models.URLField(max_length=200)
     experience = models.CharField(max_length=200)
-    studentsmaxedOut = models.BooleanField(default=False)
+    studentsmaxedout = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
