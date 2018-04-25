@@ -3,7 +3,7 @@
 # @Email:  mlhale@unomaha.edu
 # @Filename: serializers.py
 # @Last modified by:   matthale
-# @Last modified time: 2018-03-01T16:10:42-06:00
+# @Last modified time: 2018-04-25T12:55:46-05:00
 # @Copyright: Copyright (C) 2018 Matthew L. Hale
 
 
@@ -40,7 +40,7 @@ class MentorSerializer(serializers.HyperlinkedModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Mentor
-        fields = ('user', 'video', 'cv', 'bio', 'researchinterest', 'institution','job','fieldofstudy', 'webpage', 'experience', 'students')
+        fields = ('user', 'video', 'cv', 'bio', 'researchinterest', 'institution','job','fieldofstudy', 'webpage', 'experience', 'studentsmaxedOut', 'students')
 
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
     user = UserSerializer(read_only=True)
