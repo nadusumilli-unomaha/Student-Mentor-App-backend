@@ -1,3 +1,13 @@
+# @Author: Matthew Hale <matthale>
+# @Date:   2018-04-25T11:03:35-05:00
+# @Email:  mlhale@unomaha.edu
+# @Filename: models.py
+# @Last modified by:   matthale
+# @Last modified time: 2018-04-25T12:50:29-05:00
+# @Copyright: Copyright (C) 2018 Matthew L. Hale
+
+
+
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
